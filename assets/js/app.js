@@ -1,0 +1,176 @@
+const map = L.map('map');
+
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    {
+        attribution: '&copy; OpenStreetMap & CARTO'
+    }
+).addTo(map);
+
+fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnRDJ2udW1rH8/gviz/tq?tqx=out:json`)
+    .then(response => response.text())
+    .then(text => {
+
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+
+        const rows = json.table.rows;
+
+        const data = {
+            type: "FeatureCollection",
+            features: []
+        };
+
+        rows.forEach(row => {
+
+            const id = row.c[0]?.v ?? null;
+            const ssid = row.c[1]?.v ?? "";
+            const bssid = row.c[2]?.v ?? null;
+            const password = row.c[3]?.v ?? "";
+            const longitude = Number(row.c[4]?.v);
+            const latitude = Number(row.c[5]?.v);
+
+            if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
+                return;
+            }
+
+            data.features.push({
+
+                type: "Feature",
+
+                properties: {
+                    ID: id,
+                    SSID: ssid,
+                    BSSID: bssid,
+                    Password: password
+                },
+
+                geometry: {
+                    type: "Point",
+                    coordinates: [
+                        longitude,
+                        latitude
+                    ]
+                }
+            });
+        });
+        initMap(data);
+    })
+    .catch(error => {
+        console.error('Error cargando datos desde Google Sheets:', error);
+    });
+
+function initMap(data) {
+
+    const groups = {};
+
+    data.features.forEach(feature => {
+
+        const coords = feature.geometry.coordinates;
+
+        const key = `${coords[0]},${coords[1]}`;
+
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+
+        groups[key].push(feature);
+    });
+
+    const totalAPs = data.features.length;
+
+    const totalLocations = Object.keys(groups).length;
+
+    document.getElementById('stats').textContent = `${totalAPs} APs | ${totalLocations} ubicaciones`;
+
+    const markerGroup = L.featureGroup();
+    const markers = [];
+
+    Object.values(groups).forEach(features => {
+
+        const coords = features[0].geometry.coordinates;
+
+        const latlng = [
+            coords[1],
+            coords[0]
+        ];
+
+        const marker = L.circleMarker(latlng, {
+
+            radius: Math.min(10 + (features.length - 1) * 2, 16),
+
+            color: '#000000',
+            weight: 2,
+
+            fillColor: '#FF00FF',
+            fillOpacity: 0.9
+        });
+
+        let popupHtml = `<b>📶 ${features.length} red(es) Wi-Fi</b><hr>`;
+
+        features.forEach(feature => {
+
+            const p = feature.properties;
+
+            popupHtml += `
+                <b>${p.SSID}</b><br>
+                ID: ${p.ID}<br>
+                BSSID: ${p.BSSID ?? 'N/D'}<br>
+                Password: ${p.Password}<br>
+                <br>
+            `;
+        });
+
+        marker.bindPopup(popupHtml);
+        marker._features = features;
+        markers.push(marker);
+
+        markerGroup.addLayer(marker);
+    });
+
+    markerGroup.addTo(map);
+
+    const search = document.getElementById('search');
+    const clearSearch = document.getElementById('clear-search');
+
+    search.addEventListener('input', () => {
+
+        const query = search.value.trim().toLowerCase();
+
+        clearSearch.classList.toggle('visible', query.length > 0);
+
+        markerGroup.clearLayers();
+
+        markers.forEach(marker => {
+
+            const match = marker._features.some(f => f.properties.SSID.toLowerCase().includes(query));
+
+            if (query === '' || match) {
+                markerGroup.addLayer(marker);
+            }
+        });
+    });
+
+    clearSearch.addEventListener('click', () => {
+
+        search.value = '';
+
+        clearSearch.classList.remove('visible');
+
+        markerGroup.clearLayers();
+
+        markers.forEach(marker => {
+            markerGroup.addLayer(marker);
+        });
+
+        search.focus();
+    });
+
+    if (markerGroup.getLayers().length > 0) {
+        map.fitBounds(
+            markerGroup.getBounds(),
+            {
+                padding: [30, 30]
+            }
+        );
+    }
+}
