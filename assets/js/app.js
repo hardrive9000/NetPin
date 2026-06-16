@@ -116,6 +116,7 @@ function initMap(data) {
                 ID: ${p.ID}<br>
                 BSSID: ${p.BSSID ?? 'N/D'}<br>
                 Password: ${p.Password}<br>
+                <button class="show-qr" data-ssid="${p.SSID}" data-password="${p.Password}">📱 QR</button><br>
                 <br>
             `;
         });
@@ -128,6 +129,34 @@ function initMap(data) {
     });
 
     markerGroup.addTo(map);
+
+    map.on('popupopen', () => {
+        document.querySelectorAll('.show-qr').forEach(button => {
+            button.onclick = () => {
+                const ssid = button.dataset.ssid;
+                const password = button.dataset.password;
+                const wifiString = `WIFI:T:WPA;S:${ssid};P:${password};;`;
+                document.getElementById('qr-title').textContent = ssid;
+                const qrContainer = document.getElementById('qr-code');
+                qrContainer.innerHTML = '';
+
+                new QRCode(
+                    qrContainer,
+                    {
+                        text: wifiString,
+                        width: 220,
+                        height: 220
+                    }
+                );
+
+                document.getElementById('qr-modal').classList.add('visible');
+            };
+        });
+    });
+
+    document.getElementById('qr-close').addEventListener('click', () => {
+        document.getElementById('qr-modal').classList.remove('visible');
+    });
 
     const search = document.getElementById('search');
     const clearSearch = document.getElementById('clear-search');
