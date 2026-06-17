@@ -23,6 +23,12 @@ body {
     line-height: 1.4;
 }
 
+@media (max-width: 768px) {
+    .leaflet-popup-content {
+        width: 230px;
+    }
+}
+
 #header {
     position: absolute;
     top: 10px;
@@ -122,6 +128,8 @@ body {
 }
 
 .show-qr,
+.copy-ssid,
+.copy-password,
 #qr-close {
     border: none;
     border-radius: 8px;
@@ -132,7 +140,9 @@ body {
     transition: opacity .2s;
 }
 
-.show-qr {
+.show-qr,
+.copy-ssid,
+.copy-password {
     width: 100%;
     margin-top: 6px;
     padding: 6px 12px;

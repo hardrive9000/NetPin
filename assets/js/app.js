@@ -115,8 +115,10 @@ function initMap(data) {
                 <b>${p.SSID}</b><br>
                 ID: ${p.ID}<br>
                 BSSID: ${p.BSSID ?? 'N/D'}<br>
-                Password: ${p.Password}<br>
-                <button class="show-qr" data-ssid="${p.SSID}" data-password="${p.Password}">📱 QR</button><br>
+                Contraseña: ${p.Password}<br>
+                <button class="copy-ssid" data-value="${p.SSID}">📋 Copiar SSID</button>
+                <button class="copy-password" data-value="${p.Password}">🔑 Copiar Contraseña</button>
+                <button class="show-qr" data-ssid="${p.SSID}" data-password="${p.Password}">📱 Ver QR</button><br>
                 <br>
             `;
         });
@@ -131,6 +133,30 @@ function initMap(data) {
     markerGroup.addTo(map);
 
     map.on('popupopen', () => {
+        document.querySelectorAll('.copy-ssid').forEach(button => {
+            button.onclick = async () => {
+                try {
+                    await navigator.clipboard.writeText(button.dataset.value);
+                    button.textContent = '✅ Copiado';
+                    setTimeout(() => { button.textContent = '📋 Copiar SSID'; }, 1500);
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+        });
+
+        document.querySelectorAll('.copy-password').forEach(button => {
+            button.onclick = async () => {
+                try {
+                    await navigator.clipboard.writeText(button.dataset.value);
+                    button.textContent = '✅ Copiado';
+                    setTimeout(() => { button.textContent = '🔑 Copiar Contraseña'; }, 1500);
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+        });
+
         document.querySelectorAll('.show-qr').forEach(button => {
             button.onclick = () => {
                 const ssid = button.dataset.ssid;
