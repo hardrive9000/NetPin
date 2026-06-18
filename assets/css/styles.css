@@ -161,3 +161,24 @@ body {
 #qr-close:hover {
     opacity: .85;
 }
+
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,20,20,.95);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 6000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+}
+
+#toast.visible {
+    opacity: 1;
+}

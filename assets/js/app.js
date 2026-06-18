@@ -59,6 +59,16 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
         console.error('Error cargando datos desde Google Sheets:', error);
     });
 
+function showToast(message) {
+
+    const toast = document.getElementById('toast');
+
+    toast.textContent = message;
+    toast.classList.add('visible');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.classList.remove('visible'); }, 2000);
+}
+
 function initMap(data) {
 
     const groups = {};
@@ -137,8 +147,7 @@ function initMap(data) {
             button.onclick = async () => {
                 try {
                     await navigator.clipboard.writeText(button.dataset.value);
-                    button.textContent = '✅ Copiado';
-                    setTimeout(() => { button.textContent = '📋 Copiar SSID'; }, 1500);
+                    showToast('📋 SSID copiado');
                 } catch (err) {
                     console.error(err);
                 }
@@ -149,8 +158,7 @@ function initMap(data) {
             button.onclick = async () => {
                 try {
                     await navigator.clipboard.writeText(button.dataset.value);
-                    button.textContent = '✅ Copiado';
-                    setTimeout(() => { button.textContent = '🔑 Copiar Contraseña'; }, 1500);
+                    showToast('🔑 Contraseña copiada');
                 } catch (err) {
                     console.error(err);
                 }
