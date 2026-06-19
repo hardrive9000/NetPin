@@ -205,7 +205,18 @@ function initMap(data) {
 
         markers.forEach(marker => {
 
-            const match = marker._features.some(f => f.properties.SSID.toLowerCase().includes(query));
+            const match = marker._features.some(f => {
+
+                const ssid = (f.properties.SSID || '').toLowerCase();
+
+                const bssid = (f.properties.BSSID || '').toLowerCase();
+
+                const normalizedBssid = bssid.replaceAll(':', '');
+
+                const normalizedQuery = query.replaceAll(':', '');
+
+                return (ssid.includes(query) || bssid.includes(query) || normalizedBssid.includes(normalizedQuery));
+            });
 
             if (query === '' || match) {
                 markerGroup.addLayer(marker);
