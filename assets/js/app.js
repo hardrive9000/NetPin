@@ -13,7 +13,7 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
 
         const json = JSON.parse(text.substring(47).slice(0, -2));
 
-        const rows = json.table.rows;
+        const rows = json.table.rows.slice(1);
 
         const data = {
             type: "FeatureCollection",
@@ -26,8 +26,10 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
             const ssid = row.c[1]?.v ?? "";
             const bssid = row.c[2]?.v ?? null;
             const password = row.c[3]?.v ?? "";
-            const longitude = Number(row.c[4]?.v);
-            const latitude = Number(row.c[5]?.v);
+            const signal = row.c[4]?.v ?? null;
+            const notes = row.c[5]?.v ?? "";
+            const longitude = Number(row.c[6]?.v);
+            const latitude = Number(row.c[7]?.v);
 
             if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
                 return;
@@ -41,7 +43,9 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
                     ID: id,
                     SSID: ssid,
                     BSSID: bssid,
-                    Password: password
+                    Password: password,
+                    Signal: signal,
+                    Notes: notes
                 },
 
                 geometry: {
@@ -124,8 +128,10 @@ function initMap(data) {
             popupHtml += `
                 <b>${p.SSID}</b><br>
                 ID: ${p.ID}<br>
-                BSSID: ${p.BSSID ?? 'N/D'}<br>
                 Contraseña: ${p.Password}<br>
+                ${p.BSSID ? `BSSID: ${p.BSSID}<br>` : ''}
+                ${p.Signal ? `Señal: ${p.Signal} dB<br>` : ''}
+                ${p.Notes ? `Notas: ${p.Notes}<br>` : ''}
                 <button class="copy-ssid" data-value="${p.SSID}">📋 Copiar SSID</button>
                 <button class="copy-password" data-value="${p.Password}">🔑 Copiar Contraseña</button>
                 <button class="show-qr" data-ssid="${p.SSID}" data-password="${p.Password}">📱 Ver QR</button><br>
