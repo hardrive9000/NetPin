@@ -13,7 +13,7 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
 
         const json = JSON.parse(text.substring(47).slice(0, -2));
 
-        const rows = json.table.rows.slice(1);
+        const rows = json.table.rows;
 
         const data = {
             type: "FeatureCollection",
@@ -200,8 +200,12 @@ function initMap(data) {
 
     const search = document.getElementById('search');
     const clearSearch = document.getElementById('clear-search');
+    const stats = document.getElementById('stats');
 
     search.addEventListener('input', () => {
+
+        let filteredAPs = 0;
+        let filteredLocations = 0;
 
         const query = search.value.trim().toLowerCase();
 
@@ -226,8 +230,17 @@ function initMap(data) {
 
             if (query === '' || match) {
                 markerGroup.addLayer(marker);
+                filteredLocations++;
+                filteredAPs += marker._features.length;
             }
         });
+
+        if (query === '') {
+            stats.textContent = `${totalAPs} APs | ${totalLocations} ubicaciones`;
+        }
+        else {
+            stats.textContent = `${filteredAPs} de ${totalAPs} APs | ${filteredLocations} de ${totalLocations} ubicaciones`;
+        }
     });
 
     clearSearch.addEventListener('click', () => {
@@ -243,6 +256,8 @@ function initMap(data) {
         });
 
         search.focus();
+
+        stats.textContent = `${totalAPs} APs | ${totalLocations} ubicaciones`;
     });
 
     if (markerGroup.getLayers().length > 0) {
