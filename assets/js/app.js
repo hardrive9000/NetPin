@@ -57,10 +57,20 @@ fetch(`https://docs.google.com/spreadsheets/d/1qjqCdRiGl4L53UhWzyDBe5Qs8mlEf9BnR
                 }
             });
         });
+
         initMap(data);
+
+        localStorage.setItem('netpin-data', JSON.stringify(data));
     })
     .catch(error => {
-        console.error('Error cargando datos desde Google Sheets:', error);
+        const cached = localStorage.getItem('netpin-data');
+        if (cached) {
+            initMap(JSON.parse(cached));
+            showToast('📡 Datos offline');
+        }
+        else {
+            console.error('Error cargando datos desde Google Sheets:', error);
+        }
     });
 
 function showToast(message) {
@@ -268,4 +278,17 @@ function initMap(data) {
             }
         );
     }
+}
+
+if ('serviceWorker' in navigator) {
+
+    window.addEventListener('load', () => {
+
+        navigator.serviceWorker
+            .register('sw.js')
+            .then(() => {
+                console.log('Service Worker registrado');
+            })
+            .catch(console.error);
+    });
 }
